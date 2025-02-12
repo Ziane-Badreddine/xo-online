@@ -1,0 +1,99 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL")
+   relationMode = "prisma"
+  
+}
+
+
+enum GameStatus {
+  WAITING
+  IN_PROGRESS
+  FINISHED
+}
+
+
+
+model User {
+  // Clerk User ID comme clé primaire
+  id           String         @id
+  username     String         @unique
+  email        String?        @unique
+  wins         Int            @default(0)
+  losses       Int            @default(0)
+  draws        Int            @default(0)
+  eloRating    Int            @default(1000)
+  avatarUrl    String?
+  
+  // Relations
+  gamesAsPlayer1 Game[]       @relation("Player1Games")
+  gamesAsPlayer2 Game[]       @relation("Player2Games")
+  messages       ChatMessage[]
+  queueEntry     Queue?
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([eloRating])
+}
+
+model Game {
+  id          String     @id @default(uuid())
+  player1     User       @relation("Player1Games", fields: [player1Id], references: [id])
+  player1Id   String
+  player2     User?      @relation("Player2Games", fields: [player2Id], references: [id])
+  player2Id   String?
+  board       String[]   @default(["", "", "", "", "", "", "", "", ""])
+  status      GameStatus @default(WAITING)
+  winner      String?    // ID du gagnant (Clerk User ID)
+  currentTurn String?    // ID du joueur actif (Clerk User ID)
+  
+  
+  messages    ChatMessage[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Index pour les requêtes courantes
+  @@index([player1Id])
+  @@index([player2Id])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  content   String   @db.VarChar(500) // Limite de 500 caractères
+  game      Game     @relation(fields: [gameId], references: [id])
+  gameId    String
+  sender    User     @relation(fields: [senderId], references: [id])
+  senderId  String
+  createdAt DateTime @default(now())
+
+  // Optimisation des requêtes
+  @@index([gameId])
+  @@index([senderId])
+  @@index([createdAt])
+}
+
+model Queue {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @unique
+  eloRating Int
+  createdAt DateTime @default(now())
+
+  @@index([eloRating])
+  @@index([createdAt])
+}
