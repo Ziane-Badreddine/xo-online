@@ -275,6 +275,7 @@ const TicTacToe = ({ gameId }: { gameId: string }) => {
                     <p className="mt-4 text-primary text-2xl">Joueur : {currentTurn === player1Id ? "X" : "O"}</p>
                 )}
                 <motion.button
+                    disabled= {!isWinnerHandled.current}
                     onClick={resetGame}
                     className="mt-5 px-4 py-2 bg-primary text-white rounded"
                     whileHover={{ scale: 1.1 }}
