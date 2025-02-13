@@ -5,9 +5,14 @@ import supabase from '@/lib/supabase';
 import { User } from '@prisma/client';
 import { v4 as uuidv4 } from "uuid"; // Import uuid
 import { useUser } from '@clerk/nextjs';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import CopyInput from './InputCopy';
+import { Badge } from './ui/badge';
 
 interface ChatProps {
   gameId: string;
+  gameStatus: string;
 }
 
 interface Message {
@@ -21,11 +26,11 @@ interface Message {
   };
 }
 
-export default function Chat({ gameId }: ChatProps) {
+export default function Chat({ gameId,gameStatus }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const {user} = useUser();
+  const { user } = useUser();
 
   useEffect(() => {
     const fetchInitialMessages = async () => {
@@ -37,7 +42,6 @@ export default function Chat({ gameId }: ChatProps) {
 
       if (data) {
         setMessages(data);
-        console.log(data,gameId)
       }
     };
 
@@ -100,6 +104,10 @@ export default function Chat({ gameId }: ChatProps) {
 
   return (
     <div className="flex flex-col h-full bg-gray-800/50 rounded-xl p-4">
+      <div className="w-full flex flex-col gap-2 mb-10">
+        <CopyInput gameId={gameId} />
+        <Badge className='max-w-[40%]'>{gameStatus}</Badge>
+      </div>
       <div className="flex-1 overflow-y-auto space-y-3 mb-4">
         {messages.map((message) => (
           <motion.div
@@ -109,11 +117,10 @@ export default function Chat({ gameId }: ChatProps) {
             className={`flex ${message.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-24 lg:max-w-md p-3 rounded-xl ${
-                message.senderId === user?.id
-                  ? 'bg-blue-600 ml-4'
+              className={`max-w-24 lg:max-w-md p-3 rounded-xl ${message.senderId === user?.id
+                  ? 'bg-primary ml-4'
                   : 'bg-gray-700 mr-4'
-              }`}
+                }`}
             >
               <p className="text-sm break-words">{message.content}</p>
               <p>{message.created_at}</p>
@@ -123,7 +130,7 @@ export default function Chat({ gameId }: ChatProps) {
       </div>
 
       <form onSubmit={sendMessage} className="flex gap-2">
-        <input
+        <Input
           type="text"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
@@ -131,13 +138,13 @@ export default function Chat({ gameId }: ChatProps) {
           className="flex-1  bg-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           disabled={isSending}
         />
-        <button
+        <Button
           type="submit"
-          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors"
+          className=" px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors"
           disabled={isSending || !newMessage.trim()}
         >
           {isSending ? 'Sending...' : 'Send'}
-        </button>
+        </Button>
       </form>
     </div>
   );

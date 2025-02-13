@@ -18,7 +18,7 @@ export default function CopyInput({gameId}: {gameId: string}) {
   };
 
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex items-center space-x-2 w-full">
       <Input  value={gameId} readOnly className="w-full" />
       <Button onClick={handleCopy} variant="outline">
         <ClipboardCopy className="w-5 h-5" />

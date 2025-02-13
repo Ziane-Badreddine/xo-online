@@ -41,7 +41,6 @@ model User {
   gamesAsPlayer1 Game[]       @relation("Player1Games")
   gamesAsPlayer2 Game[]       @relation("Player2Games")
   messages       ChatMessage[]
-  queueEntry     Queue?
   
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
@@ -87,13 +86,3 @@ model ChatMessage {
   @@index([createdAt])
 }
 
-model Queue {
-  id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String   @unique
-  eloRating Int
-  createdAt DateTime @default(now())
-
-  @@index([eloRating])
-  @@index([createdAt])
-}
